@@ -1,0 +1,14 @@
+{
+  "BUG-42": {
+    "title": "Checkout crashes when shipping address is missing state",
+    "description": "Steps: start checkout, remove state value, proceed to payment. Expected validation message; actual 500 error in shipping service."
+  },
+  "BUG-77": {
+    "title": "Regression: MFA email code delivered twice",
+    "description": "Two emails generated per request causing confusion and rate-limit exposure. Happens after recent notification service upgrade."
+  },
+  "BUG-108": {
+    "title": "Timeline dashboard does not refresh after editing milestones",
+    "description": "Editing a milestone saves, but dashboard retains stale data until hard reload. Impacts PM visibility on blockers."
+  }
+}

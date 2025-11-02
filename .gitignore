@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+build/
+dist/
+
+# Environment
+.venv/
+.env
+.env.*
+
+# VS Code / PyCharm
+.vscode/
+.idea/
+
+# uv cache
+.uv.lock
+.uv-cache/

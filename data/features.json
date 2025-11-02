@@ -1,0 +1,14 @@
+{
+  "QA-101": {
+    "title": "User login with multi-factor authentication",
+    "description": "As a registered user I want to log in with MFA so that my account stays secure. Includes setup, login, and recovery flows."
+  },
+  "QA-205": {
+    "title": "Shopping cart price recalculation",
+    "description": "Ensure the cart recalculates totals when quantities or promotion codes change, covering edge cases like expired coupons and mixed tax categories."
+  },
+  "QA-310": {
+    "title": "Project timeline dashboard",
+    "description": "Dashboard summarizes milestone progress, delivery risk indicators, and blocker alerts for program managers."
+  }
+}
