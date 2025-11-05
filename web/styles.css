@@ -19,6 +19,8 @@ body {
   color: var(--text);
 }
 
+.hidden { display: none; }
+
 .app {
   height: 100vh;
   max-width: 900px;
@@ -52,15 +54,20 @@ body {
   background: rgba(31,40,63,0.7);
   backdrop-filter: blur(6px);
 }
-.tool-calls.visible { display: flex; }
+.tool-calls.visible { 
+  display: flex;
+  background: rgba(34, 139, 87, 0.7);
+  border: 1px solid rgba(46, 204, 113, 0.6);
+}
 .tool-calls .tool {
   display: inline-block;
   padding: 4px 6px;
   border-radius: 6px;
-  background: var(--panel-2);
-  border: 1px solid var(--border);
+  background: rgba(22, 89, 57, 0.5);
+  border: 1px solid rgba(46, 204, 113, 0.4);
 }
 .tool code { color: #cdd9ff; }
+.tool strong { color: #7bed9f; }
 
 .chat {
   position: relative;
@@ -126,6 +133,7 @@ body {
   display: flex;
   gap: 8px;
   padding: 10px 12px;
+  margin-bottom: 20px;
   background: linear-gradient(180deg, rgba(11, 16, 32, 0), #0b1020 40%);
 }
 .chat-input input {
@@ -144,6 +152,16 @@ body {
   padding: 10px 16px;
   font-weight: 600;
 }
+
+.chat-input .stop {
+  border: 1px solid #7a2b2b;
+  background: #c0392b;
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 600;
+}
+.chat-input .stop:hover { filter: brightness(1.1); }
 
 
 .typing {

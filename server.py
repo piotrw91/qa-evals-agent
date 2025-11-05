@@ -89,6 +89,10 @@ async def stream_events(request: Request, sessionId: str = Query(...)) -> Stream
     """
 
     queue = register_session_listener(sessionId)
+    try:
+        print(f"[session] SSE connected for session: {sessionId}")
+    except Exception:
+        pass
 
     async def event_generator():
         try:
@@ -112,6 +116,10 @@ async def stream_events(request: Request, sessionId: str = Query(...)) -> Stream
                         break
             finally:
                 unregister_session_listener(sessionId, queue)
+                try:
+                    print(f"[session] SSE disconnected for session: {sessionId}")
+                except Exception:
+                    pass
 
     headers = {
         "Cache-Control": "no-cache",
@@ -220,9 +228,19 @@ async def chat(req: ChatRequest) -> ChatResponse:
     session = SQLiteSession(session_id=req.sessionId)
     try:
         # Attach Langfuse session to this request's trace
-        with observability.langfuse_session_context(req.sessionId):
+        with observability.langfuse_session_context(req.sessionId) as lf_span:
             response = await Runner.run(helper, req.message, session=session)
             text = response.final_output or ""
+            # Set trace-level input/output so Sessions UI shows I/O
+            try:
+                if lf_span is not None:
+                    lf_span.update_trace(
+                        input={"message": req.message},
+                        output={"assistantMessage": text},
+                    )
+            except Exception:
+                # Best-effort; do not fail request if tracing update fails
+                pass
     finally:
         try:
             session.close()

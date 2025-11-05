@@ -77,12 +77,17 @@ except Exception as exc:
 
 
 @contextmanager
-def langfuse_session_context(session_id: str, user_id: Optional[str] = None) -> Iterator[object]:
-    """Context manager to attach a Langfuse session to the current trace.
+def langfuse_session_context(
+    session_id: str,
+    user_id: Optional[str] = None,
+    *,
+    span_name: str = "chat",
+) -> Iterator[object]:
+    """Attach a Langfuse session to the current trace without confusing naming.
 
-    Usage:
-        with langfuse_session_context("session-123", user_id="user-1"):
-            await Runner.run(...)
+    - Creates a lightweight root span for the request (default name: "chat").
+    - Links the entire trace to `session_id`/`user_id`.
+    - Yields the span so callers can set trace-level input/output while active.
     """
     try:
         from langfuse import get_client
@@ -92,7 +97,8 @@ def langfuse_session_context(session_id: str, user_id: Optional[str] = None) -> 
         yield None
         return
 
-    with client.start_as_current_span(name=f"session:{session_id}") as span:
+    # Use a neutral name for the root span so the trace doesn't look like a session object
+    with client.start_as_current_span(name=span_name) as span:
         try:
             span.update_trace(session_id=session_id, user_id=user_id)
         except Exception:
