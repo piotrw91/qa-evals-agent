@@ -20,6 +20,8 @@ from prompts import get_prompt
 load_dotenv()
 observability.init_observability()
 
+# Read model configuration from environment
+MODEL_NAME = os.getenv("MODEL_NAME", "gpt-5-mini")
 
 BASE_DIR = Path(__file__).parent
 WEB_DIR = BASE_DIR / "web"
@@ -224,7 +226,7 @@ def get_bug_from_jira(bug_id: str) -> dict[str, str]:
 helper = Agent(
     name="QA Assistant Agent",
     instructions=get_prompt("QA Agent main instructions"),
-    model="gpt-5-mini",
+    model=MODEL_NAME,
     tools=[get_feature_from_jira, get_bug_from_jira],
 )
 
