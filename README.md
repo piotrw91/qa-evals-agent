@@ -58,6 +58,14 @@ uv run uvicorn server:app --reload
 
 Open the UI at `http://127.0.0.1:8000`.
 
+Mock data
+---------
+
+The `data/` folder contains JSON fixtures used by the QA Agent:
+- `project_description.json`: high-level context about the Aurora Market e‑commerce platform (domains, flows, environments, risks).
+- `bugs.json`: a small catalog of realistic historical bug reports for Aurora Market.
+- `features.json`: a small catalog of feature / epic descriptions for Aurora Market.
+
 Observability (optional)
 ------------------------
 

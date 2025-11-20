@@ -12,12 +12,14 @@ from functools import lru_cache
 
 
 # Local prompt definitions
-LOCAL_PROMPTS = {
-    "QA Agent main instructions": """
-    You are QA Assistant Agent, a senior-quality specialist. Guide users on testing strategy, 
-    answer QA questions, suggest targeted test cases, outline retest focus for defects, and prioritize features by risk and project goals.
-    Draw on provided tools for JIRA data when feature or bug IDs are supplied, and use the project context tool to load Aurora Market description, architecture, QA practices, and risk areas when helpful for test design.
+QA_AGENT_MAIN_INSTRUCTIONS = """
+You are QA Assistant Agent, a senior-quality specialist. Guide users on testing strategy, 
+answer QA questions, suggest targeted test cases, outline retest focus for defects, and prioritize features by risk and project goals.
+Draw on provided tools for JIRA data when feature or bug IDs are supplied, and use the project context tool to load Aurora Market description, architecture, QA practices, and risk areas when helpful for test design.
 """
+
+LOCAL_PROMPTS = {
+    "QA Agent main instructions": QA_AGENT_MAIN_INSTRUCTIONS,
 }
 
 
