@@ -1,0 +1,242 @@
+{
+    "project_id": "ECOM-PLATFORM",
+    "project_name": "Aurora Market",
+    "jira_project_key": "QA",
+    "domain": "E-commerce marketplace (similar to Amazon)",
+    "stage": "Mature product in continuous delivery, with frequent incremental feature releases.",
+    "primary_user_segments": [
+      "Guest shoppers browsing without an account",
+      "Registered customers with saved addresses and payment methods",
+      "Marketplace sellers managing their inventory and orders",
+      "Internal support agents handling refunds, returns, and escalations"
+    ],
+    "environments": [
+      {
+        "name": "dev",
+        "description": "Developers’ integration environment with feature branches frequently deployed. Unstable, used for quick checks and exploratory testing of WIP features.",
+        "data_profile": "Mostly synthetic test data, small volume, may be reset without notice."
+      },
+      {
+        "name": "qa",
+        "description": "Shared testing environment used by QA and sometimes product for pre-acceptance checks.",
+        "data_profile": "Stable synthetic test data plus a small subset of anonymized production-like data. Test accounts with various configurations (premium-like membership, different countries, etc.)."
+      },
+      {
+        "name": "staging",
+        "description": "Production-like environment for release candidates and end-to-end regression.",
+        "data_profile": "High-fidelity, close to production configuration, full integration with payment sandbox, email, notifications, and external services’ staging endpoints."
+      },
+      {
+        "name": "prod",
+        "description": "Live production environment.",
+        "data_profile": "Real users, real orders. Any testing here is limited, well-controlled, and usually non-invasive (e.g., canary releases, feature-flag-based testing)."
+      }
+    ],
+    "tech_stack": {
+      "frontend": "React-based web app served by Node.js, responsive design for desktop and mobile web.",
+      "mobile": "Native iOS and Android apps sharing business logic with the backend via REST APIs.",
+      "backend": "Microservices in Java and Node.js, communicating via REST and asynchronous messaging (Kafka).",
+      "data_storage": "PostgreSQL for core transactional data, Elasticsearch for search, Redis for caching sessions and frequently accessed catalog data.",
+      "integrations": [
+        "Payment gateways (multiple PSPs, credit cards, PayPal-like wallets, BNPL provider)",
+        "External tax calculation service for international orders",
+        "3rd-party shipment providers and tracking APIs",
+        "Email/SMS push notification services",
+        "Fraud detection engine"
+      ],
+      "observability": "Centralized logging with Kibana, metrics in Prometheus/Grafana, distributed tracing in Jaeger."
+    },
+    "core_entities": [
+      {
+        "name": "User",
+        "description": "Represents a shopper or seller using the platform. Users can be unverified, verified, or blocked. Some users have premium membership that affects shipping options and pricing."
+      },
+      {
+        "name": "Product",
+        "description": "Items sold on the marketplace, with attributes like title, description, images, category, price, stock level, variant (size, color), seller, and rating. Products can be temporarily unavailable, discontinued, or hidden due to policy violations."
+      },
+      {
+        "name": "Cart",
+        "description": "Transient container for products a user intends to buy. One cart per user/device combination. Supports multiple sellers in one cart. Shipping and tax are recalculated when cart contents or addresses change."
+      },
+      {
+        "name": "Order",
+        "description": "Snapshot of purchased items, prices, discounts, shipping and tax at the time of checkout. Orders progress through statuses (Pending, Paid, Packed, Shipped, Delivered, Returned, Refunded)."
+      },
+      {
+        "name": "Payment",
+        "description": "Payment attempts related to an order. Can be Authorized, Captured, Failed, or Refunded. Some payment methods support partial capture and partial refund."
+      },
+      {
+        "name": "Shipment",
+        "description": "Tracks package-level shipping. One order can have multiple shipments (e.g., split by warehouse or seller). Shipment has statuses: Label Created, Shipped, In Transit, Out for Delivery, Delivered, Lost, Returned."
+      },
+      {
+        "name": "Review",
+        "description": "Customer-generated content (ratings, comments, images) attached to products and sellers. Subject to moderation and fraud detection (spam, offensive content)."
+      },
+      {
+        "name": "Promotion",
+        "description": "Discounts like coupons, campaign codes, seasonal promotions, and seller-funded discounts. Often constrained by dates, regions, categories, or minimum cart value."
+      }
+    ],
+    "key_business_flows": [
+      {
+        "name": "Product discovery and search",
+        "description": "Users land on the home page, browse categories, use search, and filter results. Search supports full-text queries, category filters, price range, ratings, availability, seller type, and delivery options (e.g., next-day shipping). Search results are personalized where possible.",
+        "qa_focus_points": [
+          "Relevance of results for typical and edge-case queries (typos, partial names, very generic queries).",
+          "Correct application of filters and sorting (price low-to-high, newest, rating, etc.).",
+          "Performance under high traffic for popular queries and campaigns.",
+          "Behavior when no results are found (suggestions, fallbacks).",
+          "Tracking and analytics events for impressions and clicks."
+        ]
+      },
+      {
+        "name": "Product details and recommendations",
+        "description": "Product detail page shows title, description, images, price, stock, reviews, Q&A, and recommended items (similar items, frequently bought together).",
+        "qa_focus_points": [
+          "Correct price display, including discounts, taxes, and currency.",
+          "Handling unavailable or low-stock products (disabled purchase actions, clear messaging).",
+          "Accuracy of recommended products and behavior when recommendations are empty.",
+          "Display and moderation of user-generated content (e.g., hidden offensive reviews).",
+          "Consistency between data in search results and product detail page."
+        ]
+      },
+      {
+        "name": "Cart and checkout",
+        "description": "Users add products to the cart, review cart contents, choose shipping options and payment method, confirm addresses, and place the order.",
+        "qa_focus_points": [
+          "Cart synched correctly across devices after login.",
+          "Price recalculation when promotions, shipping options, or quantities change.",
+          "Edge cases such as items going out of stock during checkout.",
+          "Error handling when payment fails or when external services are slow/unavailable.",
+          "Validation of addresses and phone numbers across different countries.",
+          "Compliance aspects: consent checkboxes, terms & conditions, privacy notices."
+        ]
+      },
+      {
+        "name": "Post-purchase workflows",
+        "description": "After order placement, users can track shipments, request invoices, initiate returns or exchanges, and contact support.",
+        "qa_focus_points": [
+          "Correct mapping between order status, shipment status, and what is shown to the user.",
+          "Return eligibility rules based on time since delivery, product type, and condition.",
+          "Correct refund amounts when partial returns or multiple payment methods are involved.",
+          "Email/SMS notifications content and timing.",
+          "Concurrency issues such as multiple return requests or frequent address changes."
+        ]
+      },
+      {
+        "name": "Seller portal",
+        "description": "Separate interface for marketplace sellers to manage products, pricing, stock, and orders.",
+        "qa_focus_points": [
+          "Role-based access control: sellers should only see and edit their own data.",
+          "Validation on product data to prevent malformed listings (missing images, invalid categories).",
+          "Synchronization between seller updates and customer-facing product pages.",
+          "Handling bulk uploads of products and prices.",
+          "Impact of seller actions on ongoing customer orders (e.g., seller cancels, changes stock)."
+        ]
+      }
+    ],
+    "non_functional_requirements": {
+      "performance": [
+        "Home page and search results should load within 2 seconds for 95% of requests under normal load.",
+        "Checkout API calls must respond within 1 second for 95% of requests, excluding external payment redirects.",
+        "System must handle flash sale events with 5x baseline traffic without critical degradation."
+      ],
+      "reliability": [
+        "99.9% uptime target for core user-facing APIs (browse, search, cart, checkout).",
+        "Graceful degradation: if recommendations or reviews are unavailable, the main purchase flow must still work."
+      ],
+      "security_and_compliance": [
+        "Payments processed via PCI-compliant providers; card data never stored directly by the platform.",
+        "Strict rate-limiting and suspicious activity detection to mitigate fraud and brute-force attacks.",
+        "GDPR-like requirements: users can download and delete their data; clear consent and cookie banners."
+      ],
+      "usability": [
+        "Accessible UI following WCAG 2.1 AA guidelines where feasible (keyboard navigation, alt text, contrasts).",
+        "Consistent behavior across web and mobile apps for key flows like search, cart, and order tracking."
+      ]
+    },
+    "qa_process_and_practices": {
+      "test_levels": [
+        "Unit tests on microservices and UI components.",
+        "API integration tests covering core flows (login, search, cart, checkout, orders, returns).",
+        "End-to-end UI tests for critical happy paths and high-risk scenarios, executed on staging.",
+        "Exploratory testing sessions focused on new features, campaign preparation, and cross-service interactions."
+      ],
+      "release_cadence": "Multiple deployments per week to production. Feature flags are heavily used to decouple code deployment from feature exposure.",
+      "defect_management": "Bugs are tracked in Jira under project key QA. Each ticket includes environment, steps to reproduce, expected vs actual behavior, screenshots or logs where relevant, and risk/impact notes.",
+      "regression_strategy": [
+        "Core regression suite run on staging before major releases (e.g., pre-Black Friday).",
+        "Targeted regression for affected modules when changes are limited to one area (e.g., only search ranking).",
+        "Smoke tests run automatically after each deployment using a small set of end-to-end checks."
+      ],
+      "automation_coverage_summary": [
+        "Login, registration, and account management covered by automated UI and API tests.",
+        "Search and product listing covered by API tests (relevance rules partially covered manually).",
+        "Critical checkout and payment flows covered with UI and API automation for main payment methods.",
+        "Most post-purchase flows (returns, refunds, invoice downloads) partially automated; complex refund rules still rely on manual testing.",
+        "Seller portal currently has limited automated coverage and is considered a higher risk area."
+      ]
+    },
+    "known_risky_areas_and_historical_bugs": [
+      {
+        "area": "Promotions and discounts",
+        "description": "High number of past incidents during big campaigns (e.g., Black Friday) where discounts were misapplied due to overlapping rules or timezone issues.",
+        "qa_guidance": "For any change touching pricing, tax, or promotions logic, extended regression around cart totals, stacked promo codes, start/end times across timezones, and eligibility for new vs existing users is recommended."
+      },
+      {
+        "area": "Stock synchronization",
+        "description": "Occasional delays between sellers’ stock updates and what customers see. This has caused overselling and order cancellations.",
+        "qa_guidance": "When testing features that read or modify stock (e.g., reservations in checkout), include scenarios with concurrent changes, slow downstream systems, and partial failures."
+      },
+      {
+        "area": "Multi-currency support",
+        "description": "Previously, rounding errors and inconsistent exchange rates caused mismatches between cart totals, payment gateway amounts, and refunds.",
+        "qa_guidance": "Multi-currency flows should be verified end-to-end, including promotions and refunds, with attention to rounding rules and currency formatting."
+      },
+      {
+        "area": "Search relevance configuration",
+        "description": "Small changes in search scoring weights sometimes produced unexpected ranking shifts, leading to lower conversion.",
+        "qa_guidance": "For search-related work, comparing before/after results for a set of baseline queries and reviewing impact on filters, sorting, and personalization signals is important."
+      },
+      {
+        "area": "Seller permissions",
+        "description": "Bugs where sellers could unintentionally see other sellers’ data or perform restricted actions.",
+        "qa_guidance": "For work in the seller portal, negative tests for unauthorized access (URL manipulation, API calls with different seller IDs) and verification of audit logs are important."
+      }
+    ],
+    "test_data_and_accounts": {
+      "standard_test_users": [
+        {
+          "id": "test_buyer_basic",
+          "profile": "Regular buyer with no premium membership, located in EU, default currency EUR, one saved address, one saved card.",
+          "usage_notes": "Use for typical single-seller orders and basic returns."
+        },
+        {
+          "id": "test_buyer_premium",
+          "profile": "Premium member with multiple addresses and payment methods, located in US, default currency USD.",
+          "usage_notes": "Use to verify premium shipping options, perks, and complex cart configurations."
+        },
+        {
+          "id": "test_seller_standard",
+          "profile": "Marketplace seller with small catalog (10–20 products), located in EU.",
+          "usage_notes": "Use for testing seller portal flows, product updates, and stock changes."
+        },
+        {
+          "id": "test_support_agent",
+          "profile": "Internal support user with access to orders, refunds, and account management tools.",
+          "usage_notes": "Use when reproducing support-related incidents or testing tools that are not visible to regular users."
+        }
+      ],
+      "test_cards": "Standard sandbox test cards for Visa, Mastercard, and a failing card are available via the payment provider. Bin ranges and CVV rules follow provider documentation.",
+      "sample_products": [
+        "Electronics (phones, laptops) with warranty and higher fraud risk.",
+        "Books and media with digital vs physical variants.",
+        "Clothing with size and color variants, higher return rate.",
+        "Household items with bulky shipping options."
+      ]
+    },
+    "long_description": "Aurora Market is a large-scale e-commerce marketplace inspired by platforms like Amazon. It serves millions of users across multiple countries, allowing them to search, compare, and purchase products from both the platform itself and third-party marketplace sellers. The platform must support a wide range of product categories, from low-risk items like books to high-risk and high-value items like electronics.\n\nThe typical end user journey begins with discovery: landing on the home page, browsing categories, and using search. Search is powered by an Elasticsearch cluster and includes features such as autocomplete, typo tolerance, and multiple filters and sort options. This means that changes in search relevance or indexing can significantly affect user experience and business KPIs like click-through rate and conversion. From a QA perspective, any work that touches search, catalogs, or filters needs both functional checks (results are correct for given inputs) and qualitative checks (results are reasonably relevant and stable over time).\n\nOnce users find interesting products, they visit product detail pages. These pages aggregate data from multiple services: product metadata, pricing and stock, user reviews, recommendation models, and seller information. The UI needs to gracefully handle partial failures—if reviews are temporarily unavailable, the product should still be purchasable. QA engineers consider both the correctness of business rules (e.g., which price to show when multiple promotions apply) and the resilience of the UI when back-end services are slow or return errors.\n\nThe cart and checkout flows are among the most critical parts of the system. Aurora Market supports multi-seller carts, multiple currencies, and several payment methods. Shipping options depend on the user’s location, the seller’s capabilities, and product attributes (e.g., hazardous or bulky items). This results in a large combinatorial space for testing. Test planning uses this project context to propose representative but high-value scenarios instead of attempting exhaustive combinations. Typical distinctions include guest checkout vs logged-in checkout, premium vs non-premium users, and single-seller vs multi-seller carts.\n\nPayments and orders rely heavily on integrations with external providers: payment gateways, tax calculators, shipment carriers, and anti-fraud systems. These integrations are often responsible for a significant portion of production incidents. For example, if the tax service is unavailable, the system may need to block checkout or fall back to approximate tax rules. If the payment gateway times out after the amount was reserved, the system must correctly reconcile the order and payment state to avoid double charges or missing orders. QA engineers keep these edge cases in mind when generating test ideas, especially around error handling, retries, and idempotency.\n\nPost-purchase flows include order tracking, returns, refunds, and customer support. Aurora Market aims to be user-friendly, so customers should always know the status of their orders and have straightforward paths to resolve problems. Return eligibility is based on product type and time since delivery, with certain categories (e.g., digital goods or hygiene products) having stricter rules. Refund logic is often complex, particularly for partial returns, multiple shipments per order, and multiple payment methods (e.g., wallet plus card). Historically, many subtle bugs have emerged here, so these flows are considered high-risk and often warrant detailed regression testing whenever related code changes.\n\nOn the seller side, a dedicated portal allows marketplace sellers to manage catalog, pricing, and stock. Security and data isolation are paramount: sellers must not be able to see or modify other sellers’ data. Changes in the seller portal directly affect what buyers see: price updates, stock changes, and new product listings propagate through background jobs and caches into customer-facing services. QA work therefore covers not just the seller UI itself but also the propagation of changes across the system, including potential delays and eventual consistency issues.\n\nFrom a non-functional perspective, Aurora Market has strict performance and availability requirements. The platform must remain reliable during traffic spikes such as seasonal campaigns or flash sales. Many users arrive via marketing campaigns that send them directly into search results or specific product pages, so any regression in those areas can have immediate business impact. The team uses both automated performance tests and synthetic monitoring to detect degradations early. This context is also used to derive performance-related test ideas when reviewing features that might affect query complexity, caching, or indexing.\n\nThe QA process itself is designed around fast iteration and continuous delivery. Features are developed behind feature flags so they can be safely deployed to production but only exposed to a subset of users or internal testers. The team relies on a combination of automated tests (unit, API, and a targeted set of UI tests) and focused exploratory testing sessions. When a Jira ticket references a new feature or bug fix, this project context helps infer which parts of the system are involved, what the typical failure modes are, and which regression areas need attention.\n\nOverall, the main purpose of this project description is to provide shared knowledge of how Aurora Market works: its architecture, constraints, typical user journeys, and known risk areas. It supports more realistic and grounded test design, helps identify potential side effects, and guides meaningful clarification questions when ticket descriptions are incomplete."
+}

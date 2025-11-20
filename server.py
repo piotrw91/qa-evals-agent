@@ -135,6 +135,7 @@ async def stream_events(request: Request, sessionId: str = Query(...)) -> Stream
 DATA_DIR = BASE_DIR / "data"
 FEATURES_PATH = DATA_DIR / "features.json"
 BUGS_PATH = DATA_DIR / "bugs.json"
+PROJECT_DESCRIPTION_PATH = DATA_DIR / "project_description.json"
 
 
 def _load_jira_records(path: Path) -> dict[str, dict[str, str]]:
@@ -155,6 +156,38 @@ def _load_jira_records(path: Path) -> dict[str, dict[str, str]]:
 
 FEATURE_RECORDS = _load_jira_records(FEATURES_PATH)
 BUG_RECORDS = _load_jira_records(BUGS_PATH)
+
+
+def _load_project_context(path: Path) -> dict[str, Any]:
+    """
+    Load static project-level context from JSON.
+
+    Returns an empty dict if the file is missing or cannot be parsed.
+    """
+    try:
+        with path.open("r", encoding="utf-8") as handle:
+            data = json.load(handle)
+    except FileNotFoundError:
+        print(f"[warning] Missing project description file: {path}")
+        return {}
+    except json.JSONDecodeError as exc:
+        print(f"[warning] Failed to parse project description JSON at {path}: {exc}")
+        return {}
+    except Exception as exc:
+        print(f"[warning] Unexpected error loading project description from {path}: {exc}")
+        return {}
+
+    if not isinstance(data, dict):
+        print(
+            f"[warning] Project description file {path} did not contain a JSON object "
+            f"(got {type(data).__name__}); returning empty context."
+        )
+        return {}
+
+    return data
+
+
+PROJECT_CONTEXT: dict[str, Any] = _load_project_context(PROJECT_DESCRIPTION_PATH)
 
 
 def log_tool_call(tool_name: str, *, args: dict[str, object]) -> None:
@@ -223,11 +256,32 @@ def get_bug_from_jira(bug_id: str) -> dict[str, str]:
         publish_event(current_session_id.get(), "tool_end", {"name": "get_bug_from_jira"})
 
 
+@function_tool
+def get_project_context() -> dict[str, Any]:
+    """
+    Retrieve static project-level context for Aurora Market.
+
+    When to use:
+    - Call this tool when you need high-level system, domain, or QA process context,
+      especially while working with JIRA features or bugs.
+    - Use it to understand architecture, key flows, risk areas, and test data when
+      designing test strategies, test cases, or retest plans.
+
+    Returns:
+        A dict loaded from project_description.json with stable project context.
+    """
+    log_tool_call("get_project_context", args={})
+    try:
+        return PROJECT_CONTEXT
+    finally:
+        publish_event(current_session_id.get(), "tool_end", {"name": "get_project_context"})
+
+
 helper = Agent(
     name="QA Assistant Agent",
     instructions=get_prompt("QA Agent main instructions"),
     model=MODEL_NAME,
-    tools=[get_feature_from_jira, get_bug_from_jira],
+    tools=[get_feature_from_jira, get_bug_from_jira, get_project_context],
 )
 
 
