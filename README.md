@@ -66,6 +66,29 @@ The `data/` folder contains JSON fixtures used by the QA Agent:
 - `bugs.json`: a small catalog of realistic historical bug reports for Aurora Market.
 - `features.json`: a small catalog of feature / epic descriptions for Aurora Market.
 
+Agent capabilities and tools
+----------------------------
+
+The QA Assistant Agent can answer QA-focused questions (test cases, test plans, retest steps, risk analysis, environments, data) directly in chat. It also has three built-in tools it can call automatically to fetch structured context from the mock data in `data/`. You do not need to trigger tools manually—when your prompt implies a need for them, the Agent will call them. Data retrievable via these tools is available in @bugs.json (`data/bugs.json`), @features.json (`data/features.json`), and @project_description.json (`data/project_description.json`).
+
+- `get_feature_from_jira(feature_id)`
+  - When used: When you ask about test cases for a feature, need context to generate test cases, or want details for a specific feature.
+  - Triggered by: Mentioning a feature key like `QA-104`, or asking for feature details or test cases (e.g., “Create test cases for QA-104”).
+  - Returns: `{ "title": str, "description": str }` from `data/features.json`.
+  - Example prompts: “What does QA-101 cover?”, “Draft acceptance tests for QA-104.”
+
+- `get_bug_from_jira(bug_id)`
+  - When used: When you ask how to retest a bug, verify a fix, or need bug details to outline retest steps.
+  - Triggered by: Mentioning a bug key like `BUG-201`, or asking about retest/verification for a bug (e.g., “How do I verify the fix for BUG-203?”).
+  - Returns: `{ "title": str, "description": str }` from `data/bugs.json`.
+  - Example prompts: “Provide retest steps for BUG-201,” “What should we check after BUG-210 is fixed?”
+
+- `get_project_context()`
+  - When used: When broader system/domain/QA-process context is needed (e.g., designing a test strategy, listing risk areas, or understanding key flows/environments).
+  - Triggered by: Requests that require high-level context, or when you explicitly ask for project context (e.g., “Outline a test strategy for checkout,” “What are key risks in payments?”).
+  - Returns: A dictionary loaded from `data/project_description.json` (architecture, flows, environments, risks, data).
+  - Example prompts: “Using QA-104, outline a test strategy for multi-currency pricing consistency,” “Combine project context with QA-106 to propose returns eligibility test scenarios.”
+
 Observability (optional)
 ------------------------
 
