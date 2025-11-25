@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 import observability
 from agents import Agent, Runner, SQLiteSession, function_tool
 from prompts import get_prompt
-from server import get_feature_from_jira, get_bug_from_jira, MODEL_NAME
+from server import get_feature_from_jira, get_bug_from_jira, get_project_context, MODEL_NAME
 
 
 # Load environment variables
@@ -255,7 +255,7 @@ async def main():
         name="QA Assistant Agent",
         instructions=get_prompt("QA Agent main instructions"),
         model=MODEL_NAME,
-        tools=[get_feature_from_jira, get_bug_from_jira],
+        tools=[get_feature_from_jira, get_bug_from_jira, get_project_context],
     )
     
     # Run all queries
