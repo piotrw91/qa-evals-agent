@@ -277,7 +277,13 @@ def get_project_context() -> dict[str, Any]:
         publish_event(current_session_id.get(), "tool_end", {"name": "get_project_context"})
 
 
-helper = Agent(
+# -----------------------------
+# QA Agent (single source of truth)
+# -----------------------------
+# This agent is used by the server, experiments, and tests.
+# Import it from here to ensure consistent configuration.
+
+qa_agent = Agent(
     name="QA Assistant Agent",
     instructions=get_prompt("QA Agent main instructions"),
     model=MODEL_NAME,
@@ -304,7 +310,7 @@ async def chat(req: ChatRequest) -> ChatResponse:
     try:
         # Attach Langfuse session to this request's trace
         with observability.langfuse_session_context(req.sessionId) as lf_span:
-            response = await Runner.run(helper, req.message, session=session)
+            response = await Runner.run(qa_agent, req.message, session=session)
             text = response.final_output or ""
             # Set trace-level input/output so Sessions UI shows I/O
             try:

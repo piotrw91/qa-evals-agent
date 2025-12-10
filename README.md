@@ -93,4 +93,25 @@ Observability (optional)
 ------------------------
 
 If Langfuse keys are configured in `.env`, tracing initializes automatically (see `observability.py`).  
-On startup you should see: “Langfuse client authenticated and ready”.
+On startup you should see: "Langfuse client authenticated and ready".
+
+Langfuse Experiments
+--------------------
+
+You can run experiments against Langfuse datasets to evaluate the QA Agent systematically.
+
+### Option 1: CLI (Local - No Hosting Required)
+
+Run experiments directly from your terminal. This is the simplest approach for local development:
+
+```bash
+# Run experiment on a Langfuse dataset
+uv run python experiments.py --dataset "your-dataset-name"
+
+# With custom run name
+uv run python experiments.py --dataset "your-dataset-name" --run-name "v1.2-test"
+
+# With description
+uv run python experiments.py --dataset "your-dataset-name" --description "Testing new prompts"
+```
+

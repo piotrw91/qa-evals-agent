@@ -18,9 +18,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
 import observability
-from agents import Agent, Runner, SQLiteSession, function_tool
-from prompts import get_prompt
-from server import get_feature_from_jira, get_bug_from_jira, get_project_context, MODEL_NAME
+from agents import Agent, Runner, SQLiteSession
+from server import qa_agent, MODEL_NAME
 
 
 # Load environment variables
@@ -174,7 +173,7 @@ async def run_all_queries(queries: List[str], agent: Agent) -> List[TestResult]:
     
     print(f"\n{'='*80}")
     print(f"Starting test run with {len(queries)} queries")
-    print(f"Agent: {agent.name}")
+    print(f"Agent: {qa_agent.name}")
     print(f"Model: {MODEL_NAME}")
     print(f"{'='*80}")
     
@@ -250,16 +249,9 @@ async def main():
         print("[test-runner] No queries to process. Exiting.")
         return
     
-    # Create agent with the same configuration as the server
-    agent = Agent(
-        name="QA Assistant Agent",
-        instructions=get_prompt("QA Agent main instructions"),
-        model=MODEL_NAME,
-        tools=[get_feature_from_jira, get_bug_from_jira, get_project_context],
-    )
-    
+    # Use the same agent as the server (imported from server.py)
     # Run all queries
-    results = await run_all_queries(queries, agent)
+    results = await run_all_queries(queries, qa_agent)
     
     # Print summary
     print_summary(results)
