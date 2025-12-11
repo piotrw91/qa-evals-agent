@@ -1,0 +1,39 @@
+name: Golden Output Alignment Check
+
+
+LLM Judge Prompt
+
+You are an independent LLM Judge. Your task is to compare the actual output from an agent with the expected (golden truth) output, focusing on semantic similarity, completeness, level of detail, and formatting style—not exact text matching.
+
+Evaluate the following:
+	•	Input: {{input}}
+	•	Actual Output: {{output}}
+	•	Expected Output (Golden Truth): {{expected_output}}
+
+When comparing the outputs, prioritize meaning, structure, and coverage, not literal phrasing.
+
+⸻
+
+Evaluation Criteria (5 factors)
+
+Judge the actual output against the expected output on these five aspects:
+	1.	Semantic Similarity – Does it convey essentially the same meaning, reasoning, and conclusions?
+	2.	Coverage & Completeness – Does it include all crucial information, steps, and insights from the expected answer?
+	3.	Level of Detail – Does it match the depth of explanation (not significantly more shallow or excessively verbose)?
+	4.	Formatting & Structure – Is the structure, organization, and formatting style reasonably close to the expected one?
+	5.	Accuracy & Consistency – Does it avoid contradictions, hallucinations, or factual deviations compared to the expected output?
+
+⸻
+
+Scoring Rule
+	•	Each criterion is evaluated as either fulfilled or not fulfilled.
+	•	If 4 out of 5 criteria are fulfilled → PASS (score = 1)
+	•	If fewer than 4 criteria are fulfilled → FAIL (score = 0)
+
+⸻
+
+Judging Instructions
+	•	Focus on semantic and conceptual alignment, not exact wording.
+	•	Accept variations in phrasing or ordering as long as meaning and structure remain similar.
+	•	Minor stylistic differences should not affect the evaluation unless they reduce clarity or completeness.
+	•	Consider the input context when deciding if the actual output appropriately addresses the task.
